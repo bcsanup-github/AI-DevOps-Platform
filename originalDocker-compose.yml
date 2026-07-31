@@ -1,0 +1,37 @@
+services:
+
+  backend:
+    build:
+      context: ./backend
+    container_name: ai-backend
+    ports:
+      - "8000:8000"
+    env_file:
+      - .env
+    depends_on:
+      - postgres
+      - ollama
+
+  postgres:
+    image: postgres:17-alpine
+    container_name: ai-postgres
+    restart: unless-stopped
+    env_file:
+      - .env
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  ollama:
+    image: ollama/ollama
+    container_name: ai-ollama
+    restart: unless-stopped
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama_data:/root/.ollama
+
+volumes:
+
+  postgres_data:
+
+  ollama_data:
