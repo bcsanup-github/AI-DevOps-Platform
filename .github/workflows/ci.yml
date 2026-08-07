@@ -35,6 +35,6 @@ jobs:
           username: ${{ secrets.VM_USERNAME }}
           key: ${{ secrets.VM_SSH_KEY }}
           script: |
+            export KUBECONFIG=/home/azureuser/.kube/config
             kubectl rollout restart deployment/backend
             kubectl rollout status deployment/backend --timeout=60s
-            
