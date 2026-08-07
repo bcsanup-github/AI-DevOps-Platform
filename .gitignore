@@ -34,9 +34,11 @@ Thumbs.db
 ollama/
 
 # Terraform
+terraform.tfvars
+terraform.tfstate
+terraform.tfstate.*
 .terraform/
-*.tfstate
-*.tfstate.backup
+*.tfplan
 
 # Kubernetes
 kubeconfig
