@@ -32,20 +32,28 @@ jobs:
       - name: Check VM is reachable
         env:
           VM_HOST: ${{ secrets.VM_HOST }}
+          VM_USERNAME: ${{ secrets.VM_USERNAME }}
         run: |
-          echo "VM_HOST length: ${#VM_HOST} characters"
-          if timeout 10 bash -c "</dev/tcp/$VM_HOST/22"; then
+          # Strip spaces/newlines that sneak in when pasting secrets
+          HOST="$(printf '%s' "$VM_HOST" | tr -d '[:space:]')"
+          USER_NAME="$(printf '%s' "$VM_USERNAME" | tr -d '[:space:]')"
+          echo "VM_HOST length: ${#VM_HOST} raw, ${#HOST} after trimming"
+
+          if timeout 10 bash -c "</dev/tcp/$HOST/22"; then
             echo "Port 22 is reachable"
           else
             echo "::error::Cannot reach port 22 on VM_HOST. Make sure the VM_HOST secret holds the current VM IP (terraform output vm_public_ip)."
             exit 1
           fi
 
+          echo "DEPLOY_HOST=$HOST" >> "$GITHUB_ENV"
+          echo "DEPLOY_USER=$USER_NAME" >> "$GITHUB_ENV"
+
       - name: Deploy to Azure K3s Cluster via SSH
         uses: appleboy/ssh-action@v1.0.3
         with:
-          host: ${{ secrets.VM_HOST }}
-          username: ${{ secrets.VM_USERNAME }}
+          host: ${{ env.DEPLOY_HOST }}
+          username: ${{ env.DEPLOY_USER }}
           key: ${{ secrets.VM_SSH_KEY }}
           script: |
             export KUBECONFIG=/home/azureuser/.kube/config
