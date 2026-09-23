@@ -29,6 +29,18 @@ jobs:
     needs: build-and-push
     runs-on: ubuntu-latest
     steps:
+      - name: Check VM is reachable
+        env:
+          VM_HOST: ${{ secrets.VM_HOST }}
+        run: |
+          echo "VM_HOST length: ${#VM_HOST} characters"
+          if timeout 10 bash -c "</dev/tcp/$VM_HOST/22"; then
+            echo "Port 22 is reachable"
+          else
+            echo "::error::Cannot reach port 22 on VM_HOST. Make sure the VM_HOST secret holds the current VM IP (terraform output vm_public_ip)."
+            exit 1
+          fi
+
       - name: Deploy to Azure K3s Cluster via SSH
         uses: appleboy/ssh-action@v1.0.3
         with:
