@@ -1,7 +1,6 @@
 import requests
 
-OLLAMA_URL = "http://ai-ollama:11434/api/generate"
-MODEL = "llama3.2:1b"
+from app.config import OLLAMA_HOST, OLLAMA_MODEL
 
 
 class AIService:
@@ -12,14 +11,20 @@ class AIService:
         try:
 
             response = requests.post(
-                OLLAMA_URL,
+                f"{OLLAMA_HOST}/api/generate",
                 json={
-                    "model": MODEL,
+                    "model": OLLAMA_MODEL,
                     "prompt": prompt,
                     "stream": False
                 },
-                timeout=120
+                timeout=300
             )
+
+            if response.status_code == 404:
+                return (
+                    f"Model '{OLLAMA_MODEL}' is not installed in Ollama. "
+                    f"Run: docker exec -it ai-ollama ollama pull {OLLAMA_MODEL}"
+                )
 
             response.raise_for_status()
 
@@ -27,6 +32,6 @@ class AIService:
 
             return data.get("response", "No response returned.")
 
-        except Exception as e:
+        except requests.RequestException as e:
 
             return f"AI Error : {str(e)}"

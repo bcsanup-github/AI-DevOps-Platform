@@ -1,14 +1,43 @@
-from fastapi import FastAPI, Request, Body
-from fastapi.responses import HTMLResponse
+from contextlib import asynccontextmanager
+
+from fastapi import FastAPI, Request
 from fastapi.staticfiles import StaticFiles
-from fastapi.templating import Jinja2Templates
+from starlette.middleware.sessions import SessionMiddleware
 
+from app.api import auth, chat, health
+from app.config import SECRET_KEY
 from app.database.init_db import create_tables
-from app.database.connection import SessionLocal
-from app.models.chat import Chat
-from app.services.ai_service import AIService
 
-app = FastAPI(title="AI DevOps Project")
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+
+    create_tables()
+
+    yield
+
+
+app = FastAPI(title="AI DevOps Project", lifespan=lifespan)
+
+app.add_middleware(
+    SessionMiddleware,
+    secret_key=SECRET_KEY,
+    session_cookie="ai_session",
+    max_age=60 * 60 * 24 * 7,
+    same_site="lax"
+)
+
+@app.middleware("http")
+async def revalidate_static(request: Request, call_next):
+
+    response = await call_next(request)
+
+    # Browsers must check with the server before reusing old CSS/JS
+    if request.url.path.startswith("/static/"):
+        response.headers["Cache-Control"] = "no-cache"
+
+    return response
+
 
 app.mount(
     "/static",
@@ -16,53 +45,6 @@ app.mount(
     name="static"
 )
 
-templates = Jinja2Templates(directory="app/templates")
-
-
-@app.on_event("startup")
-def startup():
-
-    create_tables()
-
-
-@app.get("/", response_class=HTMLResponse)
-async def index(request: Request):
-
-    return templates.TemplateResponse(
-        "index.html",
-        {
-            "request": request
-        }
-    )
-
-
-@app.post("/chat")
-async def chat(data: dict = Body(...)):
-
-    prompt = data["prompt"]
-
-    answer = AIService.generate(prompt)
-
-    db = SessionLocal()
-
-    chat = Chat(
-        question=prompt,
-        answer=answer
-    )
-
-    db.add(chat)
-    db.commit()
-    db.refresh(chat)
-    db.close()
-
-    return {
-        "response": answer
-    }
-
-
-@app.get("/health")
-async def health():
-
-    return {
-        "status": "healthy"
-    }
+app.include_router(health.router)
+app.include_router(auth.router)
+app.include_router(chat.router)

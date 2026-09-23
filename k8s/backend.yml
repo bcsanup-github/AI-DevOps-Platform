@@ -31,6 +31,21 @@ spec:
               value: "5432"
             - name: OLLAMA_HOST
               value: "http://ai-ollama:11434"
+            - name: OLLAMA_MODEL
+              value: "llama3.2:1b"
+            # kubectl create secret generic backend-secret --from-literal=SECRET_KEY=<random>
+            - name: SECRET_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: backend-secret
+                  key: SECRET_KEY
+                  optional: true
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8000
+            initialDelaySeconds: 5
+            periodSeconds: 10
 ---
 apiVersion: v1
 kind: Service

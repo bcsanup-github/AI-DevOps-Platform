@@ -1,44 +1,73 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-
     <meta charset="UTF-8">
-
-    <meta name="viewport"
-          content="width=device-width, initial-scale=1.0">
-
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AI DevOps Assistant</title>
-
-    <link rel="stylesheet"
-          href="/static/css/style.css">
-
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="icon" href="data:,">
+    <link rel="stylesheet" href="/static/css/style.css?v={{ asset_version }}">
 </head>
+<body class="app-body">
 
-<body>
+<div class="app">
 
-<div class="container">
+    <aside class="sidebar" id="sidebar">
+        <div class="brand">
+            <span class="brand-mark">&gt;_</span>
+            <span>AI DevOps</span>
+        </div>
 
-<h1> AI DevOps Assistant</h1>
+        <button class="new-chat" id="clearBtn" type="button">
+            <span>＋</span> New conversation
+        </button>
 
-<textarea
-id="prompt"
-placeholder="Ask anything..."></textarea>
+        <div class="sidebar-section">
+            <p class="sidebar-label">Try asking</p>
+            <button class="suggestion" type="button">Write a Dockerfile for a FastAPI app</button>
+            <button class="suggestion" type="button">Why is my pod stuck in CrashLoopBackOff?</button>
+            <button class="suggestion" type="button">Explain Terraform state in simple words</button>
+            <button class="suggestion" type="button">Create a GitHub Actions CI for Python</button>
+        </div>
 
-<button id="sendButton">
+        <div class="sidebar-footer">
+            <div class="status"><span class="dot"></span> Model: <code>{{ model }}</code></div>
+            <div class="user-row">
+                <div class="avatar">{{ username[0] | upper }}</div>
+                <span class="user-name">{{ username }}</span>
+                <form method="post" action="/logout">
+                    <button class="ghost-btn" type="submit">Log out</button>
+                </form>
+            </div>
+        </div>
+    </aside>
 
-Ask AI
+    <main class="chat">
+        <header class="chat-header">
+            <button class="menu-btn" id="menuBtn" type="button" aria-label="Toggle menu">☰</button>
+            <h1>Assistant</h1>
+            <span class="chip">self‑hosted</span>
+        </header>
 
-</button>
+        <section class="messages" id="chatBox" aria-live="polite">
+            <div class="empty" id="emptyState">
+                <div class="empty-mark">&gt;_</div>
+                <h2>Hi {{ username }}, how can I help?</h2>
+                <p class="muted">Ask anything about infrastructure, containers, pipelines or code.</p>
+            </div>
+        </section>
 
-<div id="chatBox">
+        <form class="composer" id="chatForm">
+            <textarea id="prompt" rows="1" placeholder="Ask anything…  (Enter to send, Shift+Enter for a new line)"></textarea>
+            <button type="submit" id="sendButton" aria-label="Send">
+                <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+            </button>
+        </form>
+    </main>
 
 </div>
 
-</div>
-
-<script src="/static/js/script.js"></script>
-
+<script src="/static/js/script.js?v={{ asset_version }}"></script>
 </body>
-
 </html>
